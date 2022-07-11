@@ -7,7 +7,7 @@
 #include <fcntl.h>
 
 #define BUF_SIZE 1024
-#define IMG_BUF 7000000
+#define IMG_BUF 500000
 
 void error_handler(char *message);
 char webpage[] = "HTTP/1.1 200 OK\r\n"
@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
 	int clnt_adr_sz;
 	int fdimg;
 	char buf[BUF_SIZE];
+	char buf2[BUF_SIZE];
 	char img_buf[IMG_BUF];
 	if(argc != 2)
 	{
@@ -57,27 +58,27 @@ int main(int argc, char *argv[])
 			printf("Connected client\n");
 		
 		read(clnt_sock, buf, BUF_SIZE);
-		
-		if(!strncmp(buf, "GET /lulu.jpg", 14)) 
+		printf("%s\n", buf);
+		if(!strncmp(buf, "GET / HTTP/1.1", 14))
 		{
-			fdimg = open("lulu.jpg", O_RDONLY);
-			if(!fdimg) 
-			{
-				printf("file open error!");
-				exit(1) ;
-			}
-			read(fdimg, img_buf , sizeof(img_buf));
-			write(clnt_sock, img_buf, sizeof(img_buf)-1);
-			close(fdimg);
-		}
-	 
-		else
-		{
+			//puts("send HTML ~~~");
 			write(clnt_sock, webpage, strlen(webpage));
 		}
-	
+		else if(!strncmp(buf, "GET /lulu.jpg",13))
+		{
+			//puts("send lulu.jpg ~~~");
+			if((fdimg = open("lulu.jpg", O_RDONLY)) == -1)
+				puts("file opne err");
+				
+			if(read(fdimg, img_buf , sizeof(img_buf)) == -1)
+				puts("file read err");
+
+			if(write(clnt_sock, img_buf, sizeof(img_buf)) == -1);
+				puts("file write err");
+
+			close(fdimg);
+		}
 		close(clnt_sock);
-		printf("%s\n", buf);
 	}
 	close(serv_sock);
 	return 0;
